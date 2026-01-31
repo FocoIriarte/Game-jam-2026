@@ -1,5 +1,7 @@
 import pygame
 from pathlib import Path
+import sys
+
 
 pygame.init()
 
@@ -20,20 +22,20 @@ pygame.init()
   
 class User_character:
 
-    def __init__ (self, speed, x, y, left, right, up, down):
+    def __init__ (self, x, y, left, right, up, down, inventory):
          
          # en User_Character, las cualidades iniciales son:
          # velocidad (cuantos pixeles por movimientos)
          # x e y iniciales
          # teclas en FALSE
 
-         self.speed = speed
          self.x = x
          self.y = y
          self.left_pressed = left
          self.right_pressed = right
          self.up_pressed = up
          self.down_pressed = down
+         self.inventory = inventory
          
          # imagen inicial de jugador (TIENE QUE HABER UNA MEJOR MANERA DE HACER ESTO)
          # incrementador de tamaño para el jugador
@@ -49,8 +51,10 @@ class User_character:
          self.last_keys = {pygame.K_w: False, pygame.K_a: False, pygame.K_s: False, pygame.K_d: False}
          collided = False
 
-    def movement(self):
 
+    def movement(self, speed):
+
+        self.speed = speed
 
         # key detecta cuando una tecla está siendo apretada, y da TRUE
         
@@ -98,8 +102,7 @@ class User_character:
 
     
 
-    def update_position(self, is_walking, collider_list):
-        self.collider_list = collider_list
+    def update_position(self, is_walking):
         # variables vectoriales de posición
         self.vector_pos.x = 0
         self.vector_pos.y = 0
@@ -155,9 +158,78 @@ class User_character:
         else: 
             return False
 
-         
+    def add_item(self, name, description):
+        self.nombre = name
+        self.descripcion = description
+        
+        self.item = {
+            'nombre': self.nombre,
+            'descripcion': self.descripcion
+        }
 
-    
-    
-    
-    
+        for key, value in self.inventory:
+            if value == self.nombre:
+                print('Ya tienes este objeto')
+        else:
+            self.inventory.append(self.item)
+            print(f'Nuevo objeto añadido! {self.nombre}')
+
+    def remove_item(self, name, description):
+        self.nombre = name
+        self.descripcion = description
+        self.item = {
+            'nombre': self.nombre,
+            'descripcion': self.descripcion
+        }
+        for key, value in self.inventory:
+            if value == self.nombre:
+                self.inventory.pop(key)
+                print(f'removed {self.item.nombre}!!')
+            else:
+                print(f"Error: {self.item.nombre} not found in inventory")
+
+    def list_inventory(self):
+        print("Current Inventory:")
+        if self.inventory == []:
+            print ('Inventario está vacio!!')
+        else:
+            for item in self.inventory:
+                print(f"- {item['nombre']}: {item['descripcion']}")
+            
+    def render_inventory(self, x, y, surface):
+        self.pos_box_x = x
+        self.pos_box_y = y
+        self.string = ""
+        self.surface = surface
+        self.box_img = (Path.cwd() / 'images' / 'cuadro de texto.png')
+        self.font = pygame.font.SysFont('Monospace', 45, bold = True)
+
+        self.load_box = pygame.image.load(self.box_img).convert_alpha()
+        self.box_surface = pygame.transform.scale(self.load_box,(1200, 800))
+        self.box_rect = self.box_surface.get_rect()
+        setattr(self.box_rect, 'center', (self.pos_box_x, self.pos_box_y))
+
+        for item in self.inventory:
+            if item['nombre'] == 'plumita de paloma':
+                self.string = "PLUMITA"
+                self.render_str = self.font.render(self.string, True, (0, 0, 0))
+                self.str_rect = self.render_str.get_rect()
+                setattr(self.str_rect, 'center', (self.pos_box_x, self.pos_box_y))
+
+                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'personajedemonio_mascara.png').convert_alpha()
+                self.item_scale = pygame.transform.scale(self.load_item, (100, 100))
+
+                self.item_rect = self.item_scale.get_rect()
+                setattr(self.item_rect, 'center', (self.pos_box_x, self.pos_box_y + 100))
+            
+                self.surface.blit(self.box_surface, self.box_rect)
+                self.surface.blit(self.render_str, self.str_rect)
+                self.surface.blit(self.item_scale, self.item_rect)
+        if self.inventory == []:
+            self.string = "NO HAY ITEMS EN TU INVENTARIO"
+            self.render_str = self.font.render(self.string, True, (0, 0, 0))
+            self.str_rect = self.render_str.get_rect().inflate(10, 10)
+            setattr(self.str_rect, 'center', (self.pos_box_x, self.pos_box_y))
+            self.surface.blit(self.box_surface, self.box_rect)
+            self.surface.blit(self.render_str, self.str_rect)
+                

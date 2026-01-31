@@ -24,33 +24,37 @@ class Dialogue:
 
 
     
-    def render (self, x, y, direction):
+    def render(self, x, y, direction, padding):
         self.direction = direction
-
         self.x = x
         self.y = y
         
         self.render_str = self.font.render(self.string, True, self.color)
         self.str_rect = self.render_str.get_rect()
-        self.margin_x, self.margin_y = self.render_str.get_size()
-        self.str_rect = self.render_str.get_rect().inflate(30,10)
-        setattr(self.str_rect, self.direction, (self.x + self.margin_x/20, self.y + self.margin_y/15))
+        self.margin_x, self.margin_y = (padding/2, padding/2)
+        self.str_rect = self.render_str.get_rect().inflate(30, 10)
+        setattr(self.str_rect, self.direction, (self.x, self.y))
 
+        self.padding = padding
         self.load_box = pygame.image.load(self.boximg).convert_alpha()
-        self.box_surface = pygame.transform.scale(self.load_box,(self.str_rect.width, self.str_rect.height)
+        self.box_surface = pygame.transform.scale(
+            self.load_box,
+            (self.str_rect.width + padding * 2, self.str_rect.height + padding * 2)
         )
         self.box_rect = self.box_surface.get_rect()
         setattr(self.box_rect, self.direction, (self.x, self.y))
-   
-    def start_dialogue_triggered(self, current_time):
-        if not self.is_active:
-            self.dialogue_start_time = current_time
-            self.is_active = True
-       
-    def dialogue_display(self, current_time, duration):
-        if self.is_active:
+        
+        # Center the text within the padded box
+        self.str_rect.center = self.box_rect.center
+            
+    def dialogue_display(self, boolean):
+        if boolean:
             screen.blit(self.box_surface, self.box_rect)
             screen.blit(self.render_str, self.str_rect)
-            return True  
-        return False
-            
+    
+    def dialogue_activate (self, activation, boolean):
+        if activation == boolean:
+            screen.blit(self.box_surface, self.box_rect)
+            screen.blit(self.render_str, self.str_rect)
+
+    

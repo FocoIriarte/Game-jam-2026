@@ -4,13 +4,12 @@ import pygame
 from pathlib import Path
 import random
 from pytmx.util_pygame import load_pygame
-import pytmx
 # IMPORTADORES de archivos de código
 
 from dialogue_onchar import Dialogue
 from tilemaps_scenes import Active_tilemap
 from sound_effect import Conditional_sound
-from user_move import User_character
+from user_move import User_character 
 
 # INICIADORES pygame
 
@@ -53,6 +52,7 @@ back_set = 1
 
 # fuente monoespacio
 monospace_font = pygame.font.SysFont('Monospace', 16, bold = True) 
+arial_font = pygame.font.SysFont('Trebuchet MS', 45, bold = True)
 
 
 # VARIABLES globales de archivo TMX tilemap
@@ -84,25 +84,30 @@ message_placita = Dialogue ("Acá hay mucho olor a porro. \nMe dan ganas de part
 
 message_get_mascara = Dialogue ("En el piso de la placita encontrás algo. \nCiertamente curioso. Te lo vas a quedar", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
 
-# VARIABLES de clase y función
+message_white_bird = Dialogue ("¡Qué hermosa paloma! \n Creo que tiene algo en el cuello... \n ¿A ver qué es?", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
 
+message_got_item = Dialogue('¡TIENES UN NUEVO OBJETO!', arial_font, (255, 41, 0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
+
+inventory = []
+
+inventory_open = False
+
+# VARIABLES de clase y función
+movement = 16
 # usuario, pos incial y movimiento en 0
-char = User_character (16, 400, 400, False, False, False, False)
+char = User_character (400, 400, False, False, False, False, inventory)
 
 # establece un reloj para fps
-speed = pygame.time.Clock()
+clock = pygame.time.Clock()
 
 # define el primer fondo a mostrarse
 background = tiled_map_caminito
 
-flipped = False
-# propone items para el juego
-class Items:
+bird_got_item = False
+you_got_item = False
+object_got_message_boolean = False
 
-    def __init__ (self, name, description, item_image):
-        self.name = name
-        self.description = description
-        self.icon_image = pygame.image.load(item_image)
+# propone items para el juego
 
 ## LOOP DE JUEGO ##
 
@@ -110,7 +115,12 @@ class Items:
 ## IF RUN == FALSE: ROMPE
 ## NO SUMAR LOOPS O WHILES!! PELIGROSO 
 
-
+random_duration = random.randint(1000, 4000)
+white_bird_choice = [(23, 1), (10, 3), (2, 4), (15, 5), (17, 5), (14, 6), (15, 6), (17, 7), (13, 7), (14, 8), (18, 8), (21, 8), (10, 8), (13, 9), (16, 9), (9, 11), (13, 11), (14, 11), (22, 13)]
+grey_bird_choice= [(26,3), (19,4), (12,6), (19,6), (11,7), (18,7), (28,7), (12,8), (17,8), (12,9), (14,9), (17,9), (18,9), (19,9), (19,9), (15,10), (16,10), (17,10), (19,10), (20,10), (12,11), (18, 11), (15,12), (10,13), (14,13), (18,13), (16,16), (20,16), (27,16)]
+x_y = None
+variable_bandera = 0
+current_white_bird_flip, current_grey_bird_flip = (0 , 0 )
 while run == True:
 
     # Pone todo el tiempo música de fondo, la misma música
@@ -124,21 +134,47 @@ while run == True:
 
     # current time almacena el tiempo real, speed.tick deja FPS en 8
     current_time = pygame.time.get_ticks()
-    speed.tick(16)
+
+    clock.tick(16)
+
+   
+    if background == tiled_map_palomas:
+
+        tiled_map_palomas.update_flips(current_time)
+        
+        if current_time >= current_white_bird_flip:
+            x_y_white = random.choice(white_bird_choice)
+            x_chosen_white, y_chosen_white = x_y_white
+            
+            tiled_map_palomas.flip_random_obj(12, current_time, x_chosen_white, y_chosen_white)
+            
+            random_duration = random.randint(800, 2000)
+            current_white_bird_flip = current_time + random_duration
+
+        if current_time >= current_grey_bird_flip:
+            x_y_grey = random.choice(grey_bird_choice)
+            x_chosen_grey, y_chosen_grey = x_y_grey
+            
+            tiled_map_palomas.flip_random_obj(22, current_time, x_chosen_grey, y_chosen_grey)
+            
+            random_duration = random.randint(800, 2000)
+            current_grey_bird_flip = current_time + random_duration
+        
+
+    background.render_to_surface(screen) 
     
     # se muestra en capa 0 MAP_SURFACE
-    background.render_to_surface(screen)
 
     # la función UPDATE del objeto CHAR, clase User_character
     # maneja el movimiento y el sonido que hace al moverse
     # is_walking = False
-    char.update_position(False, background.collision_objects())
-    char.movement() 
-    
+    char.movement(movement)
+
+    char.update_position(False)
 
     # si el personaje se mueve, suenan las pisadas en obj walk_sound1
     if char.is_walking:
-       walk_sound1.playing(-1)
+       walk_sound1.playing(0)
     else:
       walk_sound1.stop_playing()
 
@@ -219,47 +255,75 @@ while run == True:
             back_set = 1
         elif back_set == 5:
             char.y = height - 56
-    if background == tiled_map_palomas:
-        tiled_map_palomas.flip_random_obj(current_time)
+
+
     
-    if background == tiled_map_test:
-        if char.collide_with_tiles(background.collision_objects()):
-            message_cat.start_dialogue_triggered(current_time)
-            if char.x > 800:
-                dir = 'midright'
-            else:
-                dir = 'midleft'
-            message_cat.render(char.x, char.y, dir)
 
-            message_cat.dialogue_display(current_time, 2000)
-
-    if background == tiled_map_placita:
+    if background == tiled_map_placita: #es una placita
         dir = 'topright'
 
         if char.y < 600 and not message_placita.is_active:
-            message_get_mascara.render(char.x, char.y, dir)
+            message_get_mascara.render(char.x, char.y, dir, 20)
 
             message_placita.is_active = True
-            message_placita.render(char.x, char.y, dir)
+            message_placita.render(char.x, char.y, dir, 20)
             screen.blit(message_placita.box_surface, message_placita.box_rect)
             screen.blit(message_placita.render_str, message_placita.str_rect)
         else:
             message_placita.is_active = False
 
+    if background == tiled_map_palomas:
+        grey_bird_collision = tiled_map_palomas.certain_collision_objects(22)
+        
+        if char.collide_with_tiles(grey_bird_collision) and bird_got_item == False:
+            if not hasattr(message_white_bird, 'time_start'):
+                message_white_bird.time_start = current_time
+
+            if current_time < message_white_bird.time_start + 2000:
+                message_white_bird.render(char.x, char.y, dir, 30)
+                message_white_bird.dialogue_display(True)
+            else:
+                bird_got_item = True
+    
+    if bird_got_item == True and you_got_item == False and variable_bandera == 1: 
+        print('¡TENÉS UN OBJETO!')
+        if not hasattr(message_got_item, 'time_start'):
+            message_got_item.time_start = current_time
+        if current_time <= message_got_item.time_start + 2000:
+            message_got_item.render(width/2, height/2, 'center', 20)
+            message_got_item.dialogue_display(True)
+        else:
+            you_got_item = True
+            char.add_item('plumita de paloma', 'una plumita de paloma gris \nque contiene virus')
+        char.list_inventory()
+
+    
+    if inventory_open == True:
+        char.render_inventory(width/2, height/2, screen)
+    
 
     # ESTE ES UN IF PARA TODO EL JUEGO
-    # es decir, aplica en el momento deseado
-    
-       
-        # si hay un mensaje renderizado y que quiere ser mostrado
-        # el mensaje se muestra por el tiempo indicado en el último número (1500 milis)
+    # es decir, aplica en el momento desedo
 
     # MANEJADOR DE EVENTOS
     # evento pygame.QUIT: si querés salir del juego, el código rompe.
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-    
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and background == tiled_map_palomas:
+                variable_bandera = 1
+            if event.key == pygame.K_q:
+                inventory_open = True
+            if event.key == pygame.K_LSHIFT:
+                movement += 16
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_q:
+                inventory_open = False
+            if event.key == pygame.K_LSHIFT:
+                movement -=16
+
+            
     # actualiza el código al final, y constantemente
     pygame.display.update()
 

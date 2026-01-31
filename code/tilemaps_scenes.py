@@ -29,10 +29,11 @@ class Active_tilemap:
         self.scale = scale_multiplier
         self.tilewidth = self.tmxdata.tilewidth * self.scale
         self.tileheight = self.tmxdata.tileheight * self.scale
+        self.tile_image = self.tmxdata.get_tile_image_by_gid
+        self.flipped_tile = {}
 
-    def render_to_surface (self, surface):
 
-        tile_image = self.tmxdata.get_tile_image_by_gid
+    def render_to_surface (self, screen):
 
         # render_to_surface ejecuta un loop        
         # donde cada layer tiene tiles
@@ -43,8 +44,12 @@ class Active_tilemap:
                 for x, y, gid in layer:
 
                     # a cada GID de tile, se le adjudica su imagen
-                    tile = tile_image(gid)
+                    tile = self.tile_image(gid)
                     if tile:
+                       
+                        if (x, y) in self.flipped_tile:
+                            tile = pygame.transform.flip(tile, True, False)
+
                         if self.scale != 1:
                             
                             # y a cada imagen de tile, se le adjudica la escala determinada previamente
@@ -52,39 +57,42 @@ class Active_tilemap:
                         
                         # finalmente, se ejecuta cada tile en la pantalla con la posición
                         # determinada por x, tamaño y escala
-                        surface.blit(tile,(x * self.tilewidth, y * self.tileheight))
+                        screen.blit (tile,(x * self.tilewidth, y * self.tileheight))
     
-    def collision_objects (self):
+    def certain_collision_objects(self, gidnum):
         blockers = []
         for layer in self.tmxdata.layers:
             for x, y, gid in layer:
-                if gid != 0:
+                if gid == gidnum:
                     tile = self.tmxdata.get_tile_image_by_gid(gid)
                     tile_width = self.tmxdata.tilewidth
                     tile_height = self.tmxdata.tileheight
-                    new_rect = pygame.Rect(x * tile_width * self.scale,y * tile_height * self.scale, tile_width * self.scale, tile_height * self.scale)
+                    new_rect = pygame.Rect(
+                        x * tile_width * self.scale,
+                        y * tile_height * self.scale, 
+                        tile_width * self.scale, 
+                        tile_height * self.scale
+                    )
                     blockers.append(new_rect)
-            return blockers
-    
-    def flip_random_obj (self, current_time):
-        self.random_duration = random.randint(1000, 4000)
-        self.current_bird_flip = current_time + self.random_duration
-        flipped = True  
         
-        if current_time <= self.current_bird_flip:
-            self.x_y_choice = [(23, 1), (10, 3), (2, 4), (15, 5), (17, 5), (14, 6), (15, 6), (17, 7), (13, 7), (14, 8), (18, 8), (21, 8), (10, 8), (13, 9), (16, 9), (9, 11), (13, 11), (14, 11), (22, 13)]
-            self.x_y = random.choice(self.x_y_choice)
-            self.x_chosen, self.y_chosen = self.x_y
-            self.palomita_random = self.tmxdata.get_tile_image(self.x_chosen, self.y_chosen, 0)
-
-            if self.palomita_random is not None:
-                print(f'{self.x_chosen}, {self.y_chosen}')
-                self.palomita_random = pygame.transform.flip(self.palomita_random, True, False)
-            else:
-                print(f"No se encontró tile en ({self.x_chosen}, {self.y_chosen}, capa 0)")
-        else: 
-            print('Something went wrong')
+        return blockers
     
+    def flip_random_obj(self, gid, current_time, x, y):
+        tile_pos = (x, y)
+        
+        self.flipped_tile[tile_pos] = current_time
 
+    def update_flips(self, current_time):
+        tiles_to_remove = []
+        
+        for tile_pos, flip_time in self.flipped_tile.items():
+            time_elapsed = current_time - flip_time
+            
+            if time_elapsed > 500:
+                tiles_to_remove.append(tile_pos)
+        
+        for tile_pos in tiles_to_remove:
+            del self.flipped_tile[tile_pos]
 
-
+        
+                
