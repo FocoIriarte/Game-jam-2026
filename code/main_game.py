@@ -259,7 +259,7 @@ while run == True:
 
     
 
-    if background == tiled_map_placita:
+    if background == tiled_map_placita: #es una placita
         dir = 'topright'
 
         if char.y < 600 and not message_placita.is_active:
