@@ -6,7 +6,7 @@ import random
 from pytmx.util_pygame import load_pygame
 # IMPORTADORES de archivos de código
 
-from dialogue_onchar import Dialogue
+from dialogue_onchar import Text
 from tilemaps_scenes import Active_tilemap
 from sound_effect import Conditional_sound
 from user_move import User_character 
@@ -84,7 +84,7 @@ walk_sound1 = Conditional_sound(SOUND_DIR / 'effects' / 'pasos.mp3',2)
 
 # VARIABLES de mensaje con caja DIALOGUE
 
-message_got_item = Dialogue('¡TIENES UN NUEVO OBJETO!', arial_font, (255, 41, 0), TEXTBOX_IMG)
+message_got_item = Text('¡TIENES UN NUEVO OBJETO!', arial_font, (255, 41, 0), TEXTBOX_IMG)
 
 inventory = []
 
@@ -256,9 +256,11 @@ while run == True:
             char.y = height - 56
 
     if background == tiled_map_palomas:
-        char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\ndurante los años de los años\nyacen en esta máscara')
-        char.add_item('Máscara azul', 'La avaricia y abundacia, contradictorias como\nson, debaten su poderío incesantemente\nen esta máscara')
-        char.add_item('Máscara verde', 'El remoto resonar de un silbato\ny el deseo de acabarlo con todo\ndescansan pacíficamente\nen esta máscara ')
+        message_got_item.render(char.x, char.y, 'topleft', 10)
+        message_got_item.dialogue_display(True, screen)
+        # char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\ndurante los años de los años\nyacen en esta máscara')
+        # char.add_item('Máscara azul', 'La avaricia y abundacia, contradictorias como\nson, debaten su poderío incesantemente\nen esta máscara')
+        # char.add_item('Máscara verde', 'El remoto resonar de un silbato\ny el deseo de acabarlo con todo\ndescansan pacíficamente\nen esta máscara ')
 
     # if background == tiled_map_palomas:
     #     grey_bird_collision = tiled_map_palomas.certain_collision_objects(22)
