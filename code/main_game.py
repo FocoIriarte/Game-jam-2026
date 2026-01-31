@@ -23,6 +23,13 @@ screen_size = (width, height)
 screen = pygame.display.set_mode(screen_size)
 pygame.display.set_caption("Mascaritas")
 
+#Creador de rutas absolutas
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+ESCENARIOS_DIR = BASE_DIR / 'images' / 'escenarios'
+ASSETS_DIR = BASE_DIR / 'images' / 'assets'
+SOUND_DIR = BASE_DIR / 'sound' #para sonido
+TEXTBOX_IMG = ASSETS_DIR / 'cuadro de texto.png'
 
 # VARIABLES globales booleanas
 
@@ -57,38 +64,27 @@ arial_font = pygame.font.SysFont('Trebuchet MS', 45, bold = True)
 
 # VARIABLES globales de archivo TMX tilemap
 
-# mapa de placita
-tiled_map_placita = Active_tilemap((Path.cwd() / 'images' / 'escenarios' / 'placita2.tmx'), 6.25) 
-
 # mapa de caminito
-tiled_map_caminito = Active_tilemap(Path.cwd() / 'images' / 'escenarios' / 'caminito.tmx', 6.25) 
+tiled_map_caminito = Active_tilemap(ESCENARIOS_DIR / 'caminito.tmx', 6.25)
 
-# mapa de cuatro gatos
-tiled_map_tren = Active_tilemap(Path.cwd() / 'images' / 'assets' / 'tren.tmx', 6.25)
+# mapa de tren
+tiled_map_tren = Active_tilemap(ASSETS_DIR / 'tren.tmx', 6.25)
 
-tiled_map_palomas = Active_tilemap(Path.cwd() / 'images' / 'escenarios' / 'palomas.tmx', 6.25)
+# mapa de palomas
+tiled_map_palomas = Active_tilemap(ESCENARIOS_DIR / 'palomas.tmx', 6.25)
 
-tiled_map_estrella = Active_tilemap(Path.cwd() / 'images' / 'assets' / 'estrella.tmx', 6.25)
+# mapa de estrella
+tiled_map_estrella = Active_tilemap(ASSETS_DIR / 'estrella.tmx', 6.25)
 
 
 # VARIABLES globales de archivo de sonido 
 
 # sonido de caminar
-walk_sound1 = Conditional_sound(Path.cwd() / 'sound' / 'effects' / 'pasos.mp3', 2)
+walk_sound1 = Conditional_sound(SOUND_DIR / 'effects' / 'pasos.mp3',2)
 
 # VARIABLES de mensaje con caja DIALOGUE
 
-# mensaje al ver gato
-message_cat = Dialogue ("Qué lindo gato. \nYo también quiero un gato, loco", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
-
-# mensaje en la placita
-message_placita = Dialogue ("Acá hay mucho olor a porro. \nMe dan ganas de partirme uno", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
-
-message_get_mascara = Dialogue ("En el piso de la placita encontrás algo. \nCiertamente curioso. Te lo vas a quedar", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
-
-message_white_bird = Dialogue ("¡Qué hermosa paloma! \n Creo que tiene algo en el cuello... \n ¿A ver qué es?", monospace_font, (0,0,0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
-
-message_got_item = Dialogue('¡TIENES UN NUEVO OBJETO!', arial_font, (255, 41, 0), (Path.cwd() / 'images' / 'cuadro de texto.png'))
+message_got_item = Dialogue('¡TIENES UN NUEVO OBJETO!', arial_font, (255, 41, 0), TEXTBOX_IMG)
 
 inventory = []
 
@@ -132,7 +128,7 @@ while run == True:
 
     # Pone todo el tiempo música de fondo, la misma música
     if not pygame.mixer.music.get_busy():
-        pygame.mixer.music.load(Path.cwd() / 'sound' / 'mascarita.mp3')
+        pygame.mixer.music.load(SOUND_DIR / 'mascarita.mp3')
         pygame.mixer.music.set_volume(1.0)
         pygame.mixer.music.play(-1, 35)
 

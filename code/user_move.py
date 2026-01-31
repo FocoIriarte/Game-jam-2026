@@ -5,6 +5,9 @@ import sys
 
 pygame.init()
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+ASSETS_DIR = BASE_DIR / 'images' / 'assets'
+
 # La clase User_character actualiza:
 # la posición inicial y continua del jugador
 # la velocidad de movimiento
@@ -40,7 +43,7 @@ class User_character:
          # imagen inicial de jugador (TIENE QUE HABER UNA MEJOR MANERA DE HACER ESTO)
          # incrementador de tamaño para el jugador
          # RECT o collider para el sprite de jugador
-         self.load_sprite = pygame.image.load(Path.cwd() / 'images' / 'char.sprite.png')
+         self.load_sprite = pygame.image.load(ASSETS_DIR / 'char.png').convert_alpha()
          self.player_sprite = pygame.transform.scale(self.load_sprite, (54, 112))
          self.rect = self.player_sprite.get_rect(center = (self.x, self.y))
 
@@ -201,7 +204,7 @@ class User_character:
         self.pos_box_y = y
         self.string = ""
         self.surface = surface
-        self.box_img = (Path.cwd() / 'images' / 'assets' / 'inventario.png')
+        self.box_img = (ASSETS_DIR / 'inventario.png')
         self.font = pygame.font.SysFont('Monospace', 40, bold = True)
         self.load_box = pygame.image.load(self.box_img).convert_alpha()
         self.box_surface = pygame.transform.scale(self.load_box,(1200, 800))
@@ -212,15 +215,15 @@ class User_character:
             if item['nombre'] == 'Máscara roja' and choose_item == self.inventory.index(item):
                 string = "Máscara roja"
                 self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara2.png').convert_alpha()
+                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara2.png').convert_alpha()
             if item['nombre'] == 'Máscara azul' and choose_item == self.inventory.index(item):
                 string = 'Máscara azul'
                 self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara3.png').convert_alpha()
+                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara3.png').convert_alpha()
             if item ['nombre'] == 'Máscara verde' and choose_item == self.inventory.index(item):
                 string = 'Máscara verde'
                 self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara4.png').convert_alpha()
+                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara4.png').convert_alpha()
 
         if self.inventory == []:
             self.string = "NO HAY ITEMS EN TU INVENTARIO"
