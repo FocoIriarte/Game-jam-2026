@@ -9,5 +9,5 @@ class NPC:
         self.npc_masked = npc_masked_image
         self.npc_unmasked = npc_unmasked_image
     
-    def dialogue_lines(self, list_of_strings)
+    def dialogue_lines(self, list_of_strings):
         self.list_of_string
