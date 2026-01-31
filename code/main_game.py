@@ -64,9 +64,11 @@ tiled_map_placita = Active_tilemap((Path.cwd() / 'images' / 'escenarios' / 'plac
 tiled_map_caminito = Active_tilemap(Path.cwd() / 'images' / 'escenarios' / 'caminito.tmx', 6.25) 
 
 # mapa de cuatro gatos
-tiled_map_test = Active_tilemap(Path.cwd() / 'images' / 'escenarios' / 'test.tmx', 6.25)
+tiled_map_tren = Active_tilemap(Path.cwd() / 'images' / 'assets' / 'tren.tmx', 6.25)
 
 tiled_map_palomas = Active_tilemap(Path.cwd() / 'images' / 'escenarios' / 'palomas.tmx', 6.25)
+
+tiled_map_estrella = Active_tilemap(Path.cwd() / 'images' / 'assets' / 'estrella.tmx', 6.25)
 
 
 # VARIABLES globales de archivo de sonido 
@@ -92,21 +94,25 @@ inventory = []
 
 inventory_open = False
 
+
+
 # VARIABLES de clase y función
 movement = 16
 # usuario, pos incial y movimiento en 0
 char = User_character (400, 400, False, False, False, False, inventory)
+
+
+
 
 # establece un reloj para fps
 clock = pygame.time.Clock()
 
 # define el primer fondo a mostrarse
 background = tiled_map_caminito
-
 bird_got_item = False
 you_got_item = False
 object_got_message_boolean = False
-
+choose_item = 0
 # propone items para el juego
 
 ## LOOP DE JUEGO ##
@@ -121,6 +127,7 @@ grey_bird_choice= [(26,3), (19,4), (12,6), (19,6), (11,7), (18,7), (28,7), (12,8
 x_y = None
 variable_bandera = 0
 current_white_bird_flip, current_grey_bird_flip = (0 , 0 )
+got_item_key = False
 while run == True:
 
     # Pone todo el tiempo música de fondo, la misma música
@@ -189,11 +196,11 @@ while run == True:
         if back_set == 1:
             background = tiled_map_palomas
             char.x = 56        
-            back_set = 3
+            back_set = 2
         elif back_set == 2:
-            background = tiled_map_caminito
+            background = tiled_map_tren
             char.x = 56
-            back_set = 1
+            back_set = 3
         elif back_set == 3:
             char.x = width - 56
         elif back_set == 4:
@@ -205,15 +212,15 @@ while run == True:
     # con background 3
     if char.x <= 48:
         if back_set == 1:
-            background = tiled_map_test
-            char.x = width - 56
-            back_set = 2
-        elif back_set == 2:
             char.x = 56
-        elif back_set == 3:
+        elif back_set == 2:
             background = tiled_map_caminito
             char.x = width - 56
             back_set = 1
+        elif back_set == 3:
+            background = tiled_map_palomas
+            char.x = width - 56
+            back_set = 2
         elif back_set == 4:
             char.x = 56
         elif back_set == 5:
@@ -224,83 +231,66 @@ while run == True:
     # con background 5
     if char.y <= 48:
         if back_set == 1:
-            background = tiled_map_placita
-            char.y = height - 56
-            back_set = 4
+            char.y = 56
         elif back_set == 2:
             char.y = 56
         elif back_set == 3:
             char.y = 56
         elif back_set == 4:
-            char.y = 56
-        elif back_set == 5:
-            background = tiled_map_caminito
             char.y = height - 56
-            back_set = 1
+            background = tiled_map_tren
+            back_set = 3
+        elif back_set == 5:
+            char.y = 56
 
     # lo mismo en posición mayor a 450 en Y
     # con background 4
     if char.y >= height - 48:
         if back_set == 1:
-            background = tiled_map_test
-            char.y = 56
-            back_set = 5
+            char.y = height - 56
         elif back_set == 2:
             char.y = height - 56
         elif back_set == 3:
-            char.y = height - 56
-        elif back_set == 4:
-            background = tiled_map_caminito
             char.y = 56
-            back_set = 1
+            background = tiled_map_estrella
+            back_set = 4
+        elif back_set == 4:
+            char.y = height - 56
         elif back_set == 5:
             char.y = height - 56
 
-
-    
-
-    if background == tiled_map_placita: #es una placita
-        dir = 'topright'
-
-        if char.y < 600 and not message_placita.is_active:
-            message_get_mascara.render(char.x, char.y, dir, 20)
-
-            message_placita.is_active = True
-            message_placita.render(char.x, char.y, dir, 20)
-            screen.blit(message_placita.box_surface, message_placita.box_rect)
-            screen.blit(message_placita.render_str, message_placita.str_rect)
-        else:
-            message_placita.is_active = False
-
     if background == tiled_map_palomas:
-        grey_bird_collision = tiled_map_palomas.certain_collision_objects(22)
+        char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\ndurante los años de los años\nyacen en esta máscara')
+        char.add_item('Máscara azul', 'La avaricia y abundacia, contradictorias como\nson, debaten su poderío incesantemente\nen esta máscara')
+        char.add_item('Máscara verde', 'El remoto resonar de un silbato\ny el deseo de acabarlo con todo\ndescansan pacíficamente\nen esta máscara ')
+
+    # if background == tiled_map_palomas:
+    #     grey_bird_collision = tiled_map_palomas.certain_collision_objects(22)
         
-        if char.collide_with_tiles(grey_bird_collision) and bird_got_item == False:
-            if not hasattr(message_white_bird, 'time_start'):
-                message_white_bird.time_start = current_time
+    #     if char.collide_with_tiles(grey_bird_collision) and bird_got_item == False:
+    #         if not hasattr(message_white_bird, 'time_start'):
+    #             message_white_bird.time_start = current_time
 
-            if current_time < message_white_bird.time_start + 2000:
-                message_white_bird.render(char.x, char.y, dir, 30)
-                message_white_bird.dialogue_display(True)
-            else:
-                bird_got_item = True
+    #         if current_time < message_white_bird.time_start + 2000:
+    #             message_white_bird.render(char.x, char.y, dir, 30)
+    #             message_white_bird.dialogue_display(True)
+    #         else:
+    #             bird_got_item = True
     
-    if bird_got_item == True and you_got_item == False and variable_bandera == 1: 
-        print('¡TENÉS UN OBJETO!')
-        if not hasattr(message_got_item, 'time_start'):
-            message_got_item.time_start = current_time
-        if current_time <= message_got_item.time_start + 2000:
-            message_got_item.render(width/2, height/2, 'center', 20)
-            message_got_item.dialogue_display(True)
-        else:
-            you_got_item = True
-            char.add_item('plumita de paloma', 'una plumita de paloma gris \nque contiene virus')
-        char.list_inventory()
+    # if bird_got_item == True and you_got_item == False and got_item_key == True:
+    #     if not hasattr(message_got_item, 'time_start'):
+    #         message_got_item.time_start = current_time
+    #     if current_time <= message_got_item.time_start + 2000:
+    #         message_got_item.render(width/2, height/2, 'center', 20)
+    #         message_got_item.dialogue_display(True)
+    #     else:
+    #         you_got_item = True
 
+    #     char.list_inventory()
+    
     
     if inventory_open == True:
-        char.render_inventory(width/2, height/2, screen)
-    
+        char.render_inventory(width/2, height/2, screen, choose_item)
 
     # ESTE ES UN IF PARA TODO EL JUEGO
     # es decir, aplica en el momento desedo
@@ -311,17 +301,24 @@ while run == True:
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and background == tiled_map_palomas:
-                variable_bandera = 1
+            if event.key == pygame.K_SPACE:
+                got_item_key = True
             if event.key == pygame.K_q:
                 inventory_open = True
+            if event.key == pygame.K_d and inventory_open == True and choose_item < 3:
+                choose_item += 1
+            if event.key == pygame.K_a and inventory_open == True and choose_item >= 1:
+                    choose_item -= 1
             if event.key == pygame.K_LSHIFT:
                 movement += 16
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_q:
                 inventory_open = False
+                choose_item = 0
             if event.key == pygame.K_LSHIFT:
                 movement -=16
+            if event.key == pygame.K_SPACE:
+                got_item_key = False
 
             
     # actualiza el código al final, y constantemente

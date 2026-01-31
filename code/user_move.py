@@ -196,35 +196,32 @@ class User_character:
             for item in self.inventory:
                 print(f"- {item['nombre']}: {item['descripcion']}")
             
-    def render_inventory(self, x, y, surface):
+    def render_inventory(self, x, y, surface, choose_item):
         self.pos_box_x = x
         self.pos_box_y = y
         self.string = ""
         self.surface = surface
-        self.box_img = (Path.cwd() / 'images' / 'cuadro de texto.png')
-        self.font = pygame.font.SysFont('Monospace', 45, bold = True)
-
+        self.box_img = (Path.cwd() / 'images' / 'assets' / 'inventario.png')
+        self.font = pygame.font.SysFont('Monospace', 40, bold = True)
         self.load_box = pygame.image.load(self.box_img).convert_alpha()
         self.box_surface = pygame.transform.scale(self.load_box,(1200, 800))
         self.box_rect = self.box_surface.get_rect()
         setattr(self.box_rect, 'center', (self.pos_box_x, self.pos_box_y))
 
         for item in self.inventory:
-            if item['nombre'] == 'plumita de paloma':
-                self.string = "PLUMITA"
-                self.render_str = self.font.render(self.string, True, (0, 0, 0))
-                self.str_rect = self.render_str.get_rect()
-                setattr(self.str_rect, 'center', (self.pos_box_x, self.pos_box_y))
+            if item['nombre'] == 'Máscara roja' and choose_item == self.inventory.index(item):
+                string = "Máscara roja"
+                self.description_string = item['descripcion']
+                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara2.png').convert_alpha()
+            if item['nombre'] == 'Máscara azul' and choose_item == self.inventory.index(item):
+                string = 'Máscara azul'
+                self.description_string = item['descripcion']
+                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara3.png').convert_alpha()
+            if item ['nombre'] == 'Máscara verde' and choose_item == self.inventory.index(item):
+                string = 'Máscara verde'
+                self.description_string = item['descripcion']
+                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'assets' / 'mascara4.png').convert_alpha()
 
-                self.load_item = pygame.image.load(Path.cwd() / 'images' / 'personajedemonio_mascara.png').convert_alpha()
-                self.item_scale = pygame.transform.scale(self.load_item, (100, 100))
-
-                self.item_rect = self.item_scale.get_rect()
-                setattr(self.item_rect, 'center', (self.pos_box_x, self.pos_box_y + 100))
-            
-                self.surface.blit(self.box_surface, self.box_rect)
-                self.surface.blit(self.render_str, self.str_rect)
-                self.surface.blit(self.item_scale, self.item_rect)
         if self.inventory == []:
             self.string = "NO HAY ITEMS EN TU INVENTARIO"
             self.render_str = self.font.render(self.string, True, (0, 0, 0))
@@ -232,4 +229,25 @@ class User_character:
             setattr(self.str_rect, 'center', (self.pos_box_x, self.pos_box_y))
             self.surface.blit(self.box_surface, self.box_rect)
             self.surface.blit(self.render_str, self.str_rect)
+        else:     
+            self.render_str = self.font.render(self.string, True, (0, 0, 0))
+            self.str_rect = self.render_str.get_rect()
+            setattr(self.str_rect, 'midtop', (self.pos_box_x, self.pos_box_y - 300))
+
+            self.render_description = self.font.render(self.description_string, True, (0, 0, 0))
+            self.description_rect = self.render_description.get_rect()
+            setattr(self.description_rect, 'center', (self.pos_box_x, self.pos_box_y-150))
+            
+            self.item_scale = pygame.transform.scale(self.load_item, (200, 200))
+            self.item_rect = self.item_scale.get_rect()
+            setattr(self.item_rect, 'center', (self.pos_box_x, self.pos_box_y + 100))
+        
+            self.surface.blit(self.box_surface, self.box_rect)
+            self.surface.blit(self.render_str, self.str_rect)
+            self.surface.blit(self.render_description, self.description_rect)
+            self.surface.blit(self.item_scale, self.item_rect)
+
+
+
+        
                 
