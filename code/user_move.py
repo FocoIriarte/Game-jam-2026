@@ -5,7 +5,10 @@ import sys
 
 pygame.init()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+if hasattr(sys, '_MEIPASS'):  # Si existe _MEIPASS, estamos ejecutando el .exe
+    BASE_DIR = Path(sys._MEIPASS)
+else:# Si no existe, estamos en desarrollo (VS Code)
+    BASE_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = BASE_DIR / 'images' / 'assets'
 
 # La clase User_character actualiza:
@@ -53,7 +56,6 @@ class User_character:
         self.pressed_keys = []
         self.last_keys = {pygame.K_w: False, pygame.K_a: False, pygame.K_s: False, pygame.K_d: False}
         collided = False
-
 
     def movement(self, speed):
 
@@ -169,27 +171,23 @@ class User_character:
             'nombre': self.nombre,
             'descripcion': self.descripcion
         }
+        
+        self.inventory.append(self.item)
+        print(f"Added {self.nombre} to inventory!")
 
-        for key, value in self.inventory:
-            if value == self.nombre:
-                print('Ya tienes este objeto')
-        else:
-            self.inventory.append(self.item)
-            print(f'Nuevo objeto añadido! {self.nombre}')
 
     def remove_item(self, name, description):
         self.nombre = name
         self.descripcion = description
-        self.item = {
-            'nombre': self.nombre,
-            'descripcion': self.descripcion
-        }
-        for key, value in self.inventory:
-            if value == self.nombre:
-                self.inventory.pop(key)
-                print(f'removed {self.item.nombre}!!')
-            else:
-                print(f"Error: {self.item.nombre} not found in inventory")
+        
+        # Find and remove the item
+        for i, item in enumerate(self.inventory):
+            if item['nombre'] == self.nombre:
+                self.inventory.pop(i)
+                print(f'Removed {self.nombre}!!')
+                return
+        
+        print(f"Error: {self.nombre} not found in inventory")
 
     def list_inventory(self):
         print("Current Inventory:")
@@ -213,16 +211,16 @@ class User_character:
 
         if not self.inventory:
             self.render_inventory_box()
-            self._render_centered_message("NO HAY ITEMS EN TU INVENTARIO")
+            self.render_centered_message("NO HAY ITEMS EN TU INVENTARIO")
             return
     
         if choose_item < len(self.inventory):
             self.render_inventory_box()
-            self._render_selected_item(self.inventory[choose_item])
+            self.render_selected_item(self.inventory[choose_item])
 
         if choose_item == len(self.inventory):
             self.render_inventory_box()
-            self._render_centered_message("NO HAY MÁS ITEMS EN TU INVENTARIO")
+            self. render_centered_message("NO HAY MÁS ITEMS EN TU INVENTARIO")
 
     def render_inventory_box(self):
         box_img = pygame.image.load(ASSETS_DIR / 'inventario.png').convert_alpha()
@@ -230,18 +228,19 @@ class User_character:
         box_rect = box_surface.get_rect(center=(self.pos_box_x, self.pos_box_y))
         self.surface.blit(box_surface, box_rect)
 
-    def _render_centered_message(self, message):
+    def render_centered_message(self, message):
     
         render_str = self.font.render(message, True, (0, 0, 0))
         str_rect = render_str.get_rect(center=(self.pos_box_x, self.pos_box_y)).inflate(10, 10)
         self.surface.blit(render_str, str_rect)
 
-    def _render_selected_item(self, item):
+    def render_selected_item(self, item):
         item_images = {
             'Máscara roja': 'mascararoja.png',
             'Máscara azul': 'mascaraazul.png',
             'Máscara verde': 'mascaraverde.png'
         }
+
         item_name = item['nombre']
         if item_name not in item_images:
             self.render_inventory_box()
