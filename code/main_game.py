@@ -106,6 +106,10 @@ npc_is_talking = False
 
 char_is_talking = False
 
+# ir al cielo
+
+go_to_sky = False
+
 # VARIABLES globales numericas
 
 # confirma que el primer fondo será el 1
@@ -121,6 +125,9 @@ movement = 16
 # fuente monoespacio pequeña
 
 monospace_font = pygame.font.SysFont('Monospace', 16, bold = True) 
+
+monospace_font2 = pygame.font.SysFont('Monospace', 40, bold = True) 
+
 
 # fuente arial GRANDE
 
@@ -169,8 +176,7 @@ char = User_character (400, 400, False, False, False, False, inventory)
 # establece un reloj para fps
 clock = pygame.time.Clock()
 
-# define el primer fondo a mostrarse
-background = tiled_map_caminito
+
 
 # VARIABLES de lista
 
@@ -191,15 +197,16 @@ char_with_npc_1_dialogue = ["¿Qué haces?","Que divertido, creo\nque son animal
 "¿Entonces por qué observas\ntanto a las palomas?\nparece que las odias",
 "Las odias","","","","Deberías volar muy\nlejos entonces"]
 
-char_with_npc_2_dialogue = ["?","¿Sobre las vías del tren?",
+char_with_npc_2_dialogue = ["?","¿Sobre las vías\ndel tren?",
 "Disculpa, pero tu lógica\nno tiene sentido.",
 "Tampoco te castigues\nde ese modo.",
 "Genuinamente me extraña\ntu lugar de siesta",
 "Podría pisarte un tren",
 "¿Cómo?",
 "Menos mal…",
-"No lo entendiste, el tren\nno pasa hace 30 años.",
-"Claro, el menemismo cerró\neste ramal hace 30 años,\nel tren está abandonado a\nun par de cuadras.", " "]
+"No lo entendiste, el\ntren no pasa hace 30 años.",
+"Claro, el menemismo cerró\neste ramal hace 30 años,\nel tren está abandonado a\nun par de cuadras.", 
+" "]
 
 
 # lista de diálogos de NPC 1
@@ -215,17 +222,26 @@ npc1_dialogue = ["Observo a las palomas","No lo creo,\nson normales","Las paloma
 # lista de diálogos de NPC 2
 
 npc2_dialogue = ["Zzz","0.0 Hola, me dio sueñito",
-"Bueno, escuche una vez que estas\ntablas se llaman durmientes,\nentonces pensé en usarlas para dormir",
+"Bueno, escuche una vez\nqu eestas tablas se llaman\ndurmientes, entonces pensé en\nusarlas para dormir",
 "Siempre fui un poco estúpida",
-"Sos vos el que apareció mientras dormía\ny me dijo estúpida",
-"No hay nada extraño, este es\nmi lugar de siesta completamente habitual",
+"Sos vos el que apareció\nmientras dormía y me\ndijo estúpida",
+"No hay nada extraño,\neste es mi lugar de\nsiesta completamente habitual",
 "Ojalá me pisen cuatro",
-"He tenido unos dias terribles,\nestoy esperando que pase el tren\nhace ya un par de horas",
-"No esperaba tu compasión pero tampoco\nimaginé que ibas a ser tan cruel conmigo",
+"He tenido unos dias terribles,\nestoy esperando que pase\nel tren hace ya un par\nde horas",
+"No esperaba tu compasión pero\ntampoco imaginé que ibas a\nser tan cruel conmigo",
 "¿Cómo?...",
 "Uf, que pereza…",
-"Bueno, al menos el durmiente está cómodo"]
+"Bueno, al menos el durmiente\nestá cómodo"]
 
+# inicio de todo
+
+inicio_png = pygame.image.load(ASSETS_DIR / 'inicio.png')
+inicio_transform = pygame.transform.scale(inicio_png, (1600, 900))
+
+# define el primer fondo a mostrarse
+background = inicio_transform
+
+display_credits = False
 
 ## WHILE RUN: JUEGA
 ## IF RUN == FALSE: ROMPE
@@ -256,6 +272,9 @@ while run == True:
     # durante 500 ms
     # tanto grises como blancas
 
+
+    
+
     if background == tiled_map_palomas:
 
         tiled_map_palomas.update_flips(current_time)
@@ -279,28 +298,36 @@ while run == True:
             current_grey_bird_flip = current_time + random_duration
     
     # se muestra en capa 0 MAP_SURFACE
+    if background == inicio_transform:
+        screen.blit(background)
+    else:
+        background.render_to_surface(screen) 
 
-    background.render_to_surface(screen) 
+    if background == tiled_map_cielo and display_credits:
+        créditos = Text('¡PRONTO, COMO SIEMPRE,\nMÁS DE LO MISMO!\n\nCRÉDITOS:\nprogramación : LUZ\ngráficos : MIRI y EVA\nmúsica : LENA\nnarrativa: MIRI\nproducción : ARA', monospace_font2, (0,0,0), TEXTBOX_IMG)
+        créditos.render(800, 450, 'center', 40, 60)
+        créditos.dialogue_display(True, screen)
     
     # la función UPDATE del objeto CHAR, clase User_character
     # maneja el movimiento y el sonido que hace al moverse
     # is_walking = False
 
-    char.movement(movement)
-    char.update_position(False)
+    
 
     # si el personaje se mueve, suenan las pisadas en obj walk_sound1
 
-    if char.is_walking:
-       walk_sound1.playing(0)
-    else:
-      walk_sound1.stop_playing()
+    
 
     # una vez char puede moverse, lo mostramos en capa 1
     # (superior a capa 0)
-    if not flipped_char:
+    if not flipped_char and not background == inicio_transform:
+        char.movement(movement)
+        char.update_position(False)
         screen.blit(char.player_sprite, char.rect)
-
+        if char.is_walking:
+            walk_sound1.playing(0)
+        else:
+            walk_sound1.stop_playing()
     # si el personaje supera X:
     # cambia de pantalla dos veces, en tiled_map_caminito y tiled_map_palomas
 
@@ -410,7 +437,7 @@ while run == True:
 
             elif got_item_key == True and npc_dialogue_index == (len (npc1_dialogue)):
                 char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\nreposan en esta máscara roja\nde un no tan desconocido')
-                message_got_mascara.render(width/2, height/2, 'center', 50)
+                message_got_mascara.render(width/2, height/2, 'center', 50, 50)
                 message_got_mascara.dialogue_display(True, screen)
                 npc1_masked = False
                 print ('NUEVO OBJETO')
@@ -476,25 +503,25 @@ while run == True:
                         char_is_talking = False
                         npc_is_talking = True
                     else:
+                        time_to_sky = current_time
                         char_position.dialogue_lines(screen, char_is_talking, 'bottomright', (TEXTBOX_IMG), char_with_npc_2_flipped_dialogue, char_dialogue_index, 0, 0, -30, -20)
+                        go_to_sky = True
                 flipped_char = True
+            
 
 
 
-                # background = tiled_map_cielo
-                # if npc2_masked:
-                #     npc2.display_npc(screen, npc2_masked, 90)
-                # if npc2_masked == False:
-                #     npc2.display_npc(screen, npc2_masked, 90)
 
 
+    
 
-            elif got_item_key == True and npc_dialogue_index == (len (npc2_dialogue)):
-                char.add_item('Máscara verde', 'Un llanto silencioso y un silbato\ndistante conversan en esta máscara verde\nde un no tan desconocido')
-                message_got_mascara.render(width/2, height/2, 'center', 50)
-                message_got_mascara.dialogue_display(True, screen)
-                npc2_masked = False
-                print ('NUEVO OBJETO')
+
+            # elif got_item_key == True and npc_dialogue_index == (len (npc2_dialogue)):
+            #     char.add_item('Máscara verde', 'Un llanto silencioso y un silbato\ndistante conversan en esta máscara verde\nde un no tan desconocido')
+            #     message_got_mascara.render(width/2, height/2, 'center', 50)
+            #     message_got_mascara.dialogue_display(True, screen)
+            #     npc2_masked = False
+            #     print ('NUEVO OBJETO')
         
             
         elif result_of_collide == 1:
@@ -529,6 +556,15 @@ while run == True:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
+                if background == inicio_transform:
+                    background = tiled_map_caminito
+
+                if go_to_sky == True:
+                    background = tiled_map_cielo
+
+                if background == tiled_map_cielo:
+                    display_credits = True
+                    
                 
                 if result_of_collide == 2:
                     if got_interaction_npc == True:

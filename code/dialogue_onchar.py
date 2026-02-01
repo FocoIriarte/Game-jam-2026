@@ -27,12 +27,12 @@ class Text:
     # TEXT_DIRECTION: direction desde X, Y para la que se proyecta el texto
     # PADDING: espacio de márgenes entre x e y
 
-    def render(self, x, y, text_direction, padding):
+    def render(self, x, y, text_direction, paddingx, paddingy):
 
         self.text_direction = text_direction
         self.x = x
         self.y = y
-        self.margin_x, self.margin_y = (padding, padding)
+        self.margin_x, self.margin_y = (paddingx, paddingy)
         
         # renderiza el texto a imagen basado en texto y color
         # luego obtiene un RECT basado en dicha imagen con padding
@@ -47,7 +47,7 @@ class Text:
         # y asigna posición X e Y y dirección
 
         self.load_textbox = pygame.image.load(self.textbox).convert_alpha()
-        self.textbox_surface = pygame.transform.scale(self.load_textbox,(720, self.text_rect.height + padding * 2))
+        self.textbox_surface = pygame.transform.scale(self.load_textbox,(720, self.text_rect.height + paddingy * 2))
         self.textbox_rect = self.textbox_surface.get_rect()
         setattr(self.textbox_rect, self.text_direction, (self.x, self.y))
         
