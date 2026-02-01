@@ -26,33 +26,33 @@ ASSETS_DIR = BASE_DIR / 'images' / 'assets'
 class User_character:
 
     def __init__ (self, x, y, left, right, up, down, inventory):
-         
-         # en User_Character, las cualidades iniciales son:
-         # velocidad (cuantos pixeles por movimientos)
-         # x e y iniciales
-         # teclas en FALSE
+        global choose_item
+        # en User_Character, las cualidades iniciales son:
+        # velocidad (cuantos pixeles por movimientos)
+        # x e y iniciales
+        # teclas en FALSE
 
-         self.x = x
-         self.y = y
-         self.left_pressed = left
-         self.right_pressed = right
-         self.up_pressed = up
-         self.down_pressed = down
-         self.inventory = inventory
-         
-         # imagen inicial de jugador (TIENE QUE HABER UNA MEJOR MANERA DE HACER ESTO)
-         # incrementador de tamaño para el jugador
-         # RECT o collider para el sprite de jugador
-         self.load_sprite = pygame.image.load(ASSETS_DIR / 'char.png').convert_alpha()
-         self.player_sprite = pygame.transform.scale(self.load_sprite, (54, 112))
-         self.rect = self.player_sprite.get_rect(center = (self.x, self.y))
+        self.x = x
+        self.y = y
+        self.left_pressed = left
+        self.right_pressed = right
+        self.up_pressed = up
+        self.down_pressed = down
+        self.inventory = inventory
+        
+        # imagen inicial de jugador (TIENE QUE HABER UNA MEJOR MANERA DE HACER ESTO)
+        # incrementador de tamaño para el jugador
+        # RECT o collider para el sprite de jugador
+        self.load_sprite = pygame.image.load(ASSETS_DIR / 'char.png').convert_alpha()
+        self.player_sprite = pygame.transform.scale(self.load_sprite, (54, 112))
+        self.rect = self.player_sprite.get_rect(center = (self.x, self.y))
 
-         # iniciador de movimiento vectorial, para facilitar el resto
-         self.vector_pos = pygame.Vector2(0, 0)
+        # iniciador de movimiento vectorial, para facilitar el resto
+        self.vector_pos = pygame.Vector2(0, 0)
 
-         self.pressed_keys = []
-         self.last_keys = {pygame.K_w: False, pygame.K_a: False, pygame.K_s: False, pygame.K_d: False}
-         collided = False
+        self.pressed_keys = []
+        self.last_keys = {pygame.K_w: False, pygame.K_a: False, pygame.K_s: False, pygame.K_d: False}
+        collided = False
 
 
     def movement(self, speed):
@@ -88,13 +88,13 @@ class User_character:
 
             # last_key se vuelve la última posición de la lista de teclas apretadas
 
-            last_key = self.pressed_keys[-1]
+            self.last_key = self.pressed_keys[-1]
 
             # y dependiendo la tecla que sea, adjunta un valor
-            self.right_pressed = last_key == pygame.K_d
-            self.left_pressed = last_key == pygame.K_a
-            self.up_pressed = last_key == pygame.K_w
-            self.down_pressed = last_key == pygame.K_s
+            self.right_pressed = self.last_key == pygame.K_d
+            self.left_pressed = self.last_key == pygame.K_a
+            self.up_pressed = self.last_key == pygame.K_w
+            self.down_pressed = self.last_key == pygame.K_s
 
             # si nada fue apretado, no hay movimiento
         else:
@@ -211,44 +211,73 @@ class User_character:
         self.box_rect = self.box_surface.get_rect()
         setattr(self.box_rect, 'center', (self.pos_box_x, self.pos_box_y))
 
-        for item in self.inventory:
-            if item['nombre'] == 'Máscara roja' and choose_item == self.inventory.index(item):
-                string = "Máscara roja"
-                self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara2.png').convert_alpha()
-            if item['nombre'] == 'Máscara azul' and choose_item == self.inventory.index(item):
-                string = 'Máscara azul'
-                self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara3.png').convert_alpha()
-            if item ['nombre'] == 'Máscara verde' and choose_item == self.inventory.index(item):
-                string = 'Máscara verde'
-                self.description_string = item['descripcion']
-                self.load_item = pygame.image.load(ASSETS_DIR / 'mascara4.png').convert_alpha()
+        if not self.inventory:
+            self.render_inventory_box()
+            self._render_centered_message("NO HAY ITEMS EN TU INVENTARIO")
+            return
+    
+        if choose_item < len(self.inventory):
+            self.render_inventory_box()
+            self._render_selected_item(self.inventory[choose_item])
 
-        if self.inventory == []:
-            self.string = "NO HAY ITEMS EN TU INVENTARIO"
-            self.render_str = self.font.render(self.string, True, (0, 0, 0))
-            self.str_rect = self.render_str.get_rect().inflate(10, 10)
-            setattr(self.str_rect, 'center', (self.pos_box_x, self.pos_box_y))
-            self.surface.blit(self.box_surface, self.box_rect)
-            self.surface.blit(self.render_str, self.str_rect)
-        else:     
-            self.render_str = self.font.render(self.string, True, (0, 0, 0))
-            self.str_rect = self.render_str.get_rect()
-            setattr(self.str_rect, 'midtop', (self.pos_box_x, self.pos_box_y - 300))
+        if choose_item == len(self.inventory):
+            self.render_inventory_box()
+            self._render_centered_message("NO HAY MÁS ITEMS EN TU INVENTARIO")
 
-            self.render_description = self.font.render(self.description_string, True, (0, 0, 0))
-            self.description_rect = self.render_description.get_rect()
-            setattr(self.description_rect, 'center', (self.pos_box_x, self.pos_box_y-150))
-            
-            self.item_scale = pygame.transform.scale(self.load_item, (200, 200))
-            self.item_rect = self.item_scale.get_rect()
-            setattr(self.item_rect, 'center', (self.pos_box_x, self.pos_box_y + 100))
+    def render_inventory_box(self):
+        box_img = pygame.image.load(ASSETS_DIR / 'inventario.png').convert_alpha()
+        box_surface = pygame.transform.scale(box_img, (1200, 800))
+        box_rect = box_surface.get_rect(center=(self.pos_box_x, self.pos_box_y))
+        self.surface.blit(box_surface, box_rect)
+
+    def _render_centered_message(self, message):
+    
+        render_str = self.font.render(message, True, (0, 0, 0))
+        str_rect = render_str.get_rect(center=(self.pos_box_x, self.pos_box_y)).inflate(10, 10)
+        self.surface.blit(render_str, str_rect)
+
+    def _render_selected_item(self, item):
+        item_images = {
+            'Máscara roja': 'mascararoja.png',
+            'Máscara azul': 'mascaraazul.png',
+            'Máscara verde': 'mascaraverde.png'
+        }
+        item_name = item['nombre']
+        if item_name not in item_images:
+            self.render_inventory_box()
+            self._render_centered_message("NO HAY MÁS ITEMS EN TU INVENTARIO")
+            return
         
-            self.surface.blit(self.box_surface, self.box_rect)
-            self.surface.blit(self.render_str, self.str_rect)
-            self.surface.blit(self.render_description, self.description_rect)
-            self.surface.blit(self.item_scale, self.item_rect)
+        name_render = self.font.render(item_name, True, (0, 0, 0))
+        name_rect = name_render.get_rect(midtop=(self.pos_box_x, self.pos_box_y - 300))
+
+        desc_render = self.font.render(item['descripcion'], True, (0, 0, 0))
+        desc_rect = desc_render.get_rect(center=(self.pos_box_x, self.pos_box_y - 150))
+        
+        item_img = pygame.image.load(ASSETS_DIR / item_images[item_name]).convert_alpha()
+        item_scaled = pygame.transform.scale(item_img, (200, 200))
+        item_rect = item_scaled.get_rect(center=(self.pos_box_x, self.pos_box_y + 100))
+
+        self.surface.blit(name_render, name_rect)
+        self.surface.blit(desc_render, desc_rect)
+        self.surface.blit(item_scaled, item_rect)
+
+        # self.render_str = self.font.render(self.string, True, (0, 0, 0))
+        # self.str_rect = self.render_str.get_rect()
+        # setattr(self.str_rect, 'midtop', (self.pos_box_x, self.pos_box_y - 300))
+
+        # self.render_description = self.font.render(self.description_string, True, (0, 0, 0))
+        # self.description_rect = self.render_description.get_rect()
+        # setattr(self.description_rect, 'center', (self.pos_box_x, self.pos_box_y - 150))
+            
+        # self.item_scale = pygame.transform.scale(self.load_item, (200, 200))
+        # self.item_rect = self.item_scale.get_rect()
+        # setattr(self.item_rect, 'center', (self.pos_box_x, self.pos_box_y + 100))
+        
+        # self.surface.blit(self.box_surface, self.box_rect)
+        # self.surface.blit(self.render_str, self.str_rect)
+        # self.surface.blit(self.render_description, self.description_rect)
+        # self.surface.blit(self.item_scale, self.item_rect)
 
 
 

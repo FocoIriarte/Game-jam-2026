@@ -11,6 +11,7 @@ from dialogue_onchar import Text
 from tilemaps_scenes import Active_tilemap
 from sound_effect import Conditional_sound
 from user_move import User_character
+from npc_class import NPC
 
 # INICIADORES pygame
 
@@ -51,6 +52,10 @@ inventory_open = False
 
 got_item_key = False
 
+# define si estás interactuando con NPC
+
+got_interaction_npc = False
+
 # VARIABLES NONE O VACÍAS
 
 # lista de items en inventario
@@ -64,6 +69,22 @@ choose_item = 0
 # no hay posición de giro de palomas hasta que se setea
 
 current_whitebird_flip, current_greybird_flip = (0 , 0 )
+
+# la colisión con personajes no es ni CONTRA el personaje ni CERCA del personaje
+
+result_of_collide = 0
+
+# no chocamos con nada
+
+collided = False
+
+# no tenemos la máscara roja
+
+got_mascara_roja = False
+
+# indice de dialogo
+
+dialogue_index = 0
 
 # VARIABLES globales numericas
 
@@ -108,9 +129,12 @@ walk_sound1 = Conditional_sound(SOUND_DIR / 'effects' / 'pasos.mp3',2)
 
 # mensaje cuando obtenés un objeto
 
-message_got_item = Text('¡TENÉS UN NUEVO OBJETO!', arial_font, (255, 41, 0), TEXTBOX_IMG)
+message_got_mascara_roja = Text('Sobre tus manos reposa\nun silencio penumbroso', arial_font, (255, 41, 0), TEXTBOX_IMG)
 
 # VARIABLES de clase y función
+
+npc1 = NPC ((ASSETS_DIR / 'char2.png'), (ASSETS_DIR / 'char2_v2.png'), screen, 832, 256)
+npc1_masked = True
 
 # usuario, pos incial y movimiento en 0, con un inventario
 char = User_character (400, 400, False, False, False, False, inventory)
@@ -130,6 +154,10 @@ whitebird_choice = [(23, 1), (10, 3), (2, 4), (15, 5), (17, 5), (14, 6), (15, 6)
 # lista de posiciones de palomas grises
 
 greybird_choice = [(26,3), (19,4), (12,6), (19,6), (11,7), (18,7), (28,7), (12,8), (17,8), (12,9), (14,9), (17,9), (18,9), (19,9), (19,9), (15,10), (16,10), (17,10), (19,10), (20,10), (12,11), (18, 11), (15,12), (10,13), (14,13), (18,13), (16,16), (20,16), (27,16)]
+
+# lista de diálogos de NPC 1
+
+npc1_dialogue = ['Hola, podés sentarte...', 'Mirá, no me siento muy bien', 'No sé qué decirte exactamente', 'Tomá mi máscara, así de\nfácil es la vida', 'Me encantaría tener\nun espejo...', '¡...Para que vieras tu cara!', "¡Ja, ja, ja!"]
 
 ## WHILE RUN: JUEGA
 ## IF RUN == FALSE: ROMPE
@@ -180,7 +208,10 @@ while run == True:
             
             random_duration = random.randint(800, 2000)
             current_grey_bird_flip = current_time + random_duration
+    
         
+
+
     # se muestra en capa 0 MAP_SURFACE
 
     background.render_to_surface(screen) 
@@ -280,16 +311,46 @@ while run == True:
     # FUNCIÓN CUALQUIERA: sólo sirve de ejemplo para ver que se renderizan efectivamente las imagenes y los items
 
     if background == tiled_map_palomas:
-        message_got_item.render(char.x, char.y, 'topleft', 10)
-        message_got_item.dialogue_display(True, screen)
-        # char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\ndurante los años de los años\nyacen en esta máscara')
-        # char.add_item('Máscara azul', 'La avaricia y abundacia, contradictorias como\nson, debaten su poderío incesantemente\nen esta máscara')
-        # char.add_item('Máscara verde', 'El remoto resonar de un silbato\ny el deseo de acabarlo con todo\ndescansan pacíficamente\nen esta máscara ')
+        if npc1_masked:
+            npc1.display_npc(npc1_masked, screen)
+        if npc1_masked == False:
+            npc1.display_npc(npc1_masked, screen)
+        result_of_collide = npc1.on_collide(char.rect)
+        if result_of_collide == 2:
+            if got_interaction_npc == True and dialogue_index <= len(npc1_dialogue):
+                npc1.dialogue_lines(screen, got_interaction_npc, (TEXTBOX_IMG), npc1_dialogue, dialogue_index)
+            elif got_item_key == True and dialogue_index > len (npc1_dialogue):
+                char.add_item('Máscara roja', 'El olor a tierra y la bronca acumulada\ndurante los años de los años\nyacen en esta máscara')
+                message_got_mascara_roja.render(width/2, height/2, 'center', 50)
+                message_got_mascara_roja.dialogue_display(True, screen)
+                npc1_masked = False
+        
+            
+        elif result_of_collide == 1:
+            collided_time = current_time
+            if char.last_key == pygame.K_w: 
+                char.y += 16
+            if char.last_key == pygame.K_s:
+                char.y -= 16
+            if char.last_key == pygame.K_a: 
+                char.x += 16
+            if char.last_key == pygame.K_d:
+                char.x -= 16
+        
+        
+            
+            
+
+    #     message_got_item.render(char.x, char.y, 'topleft', 10)
+    #     message_got_item.dialogue_display(True, screen)
+    #     
+    #     char.add_item('Máscara azul', 'La avaricia y abundacia, contradictorias\ncomo son, debaten su poderío\nincesantemente en esta máscara')
+    #     char.add_item('Máscara verde', 'El remoto resonar de un silbato\ny el deseo de acabarlo con todo\ndescansan pacíficamente en esta máscara')
     
     # si el inventario está abierto, renderiza el inventario y lo abre
 
     if inventory_open == True:
-        char.render_inventory(width/2, height/2, screen, choose_item)
+        char.render_inventory(width/2, height/2, screen, 0)
 
 
     # --------------MANEJADOR DE EVENTOS--------------
@@ -305,13 +366,34 @@ while run == True:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                got_item_key = True
-            if event.key == pygame.K_q:
-                inventory_open = True
-            if event.key == pygame.K_d and inventory_open == True and choose_item < 3:
+                
+
+                if result_of_collide == 2:
+                    if got_interaction_npc == False:
+                        if dialogue_index <= len(npc1_dialogue) + 2:
+                            got_interaction_npc = True 
+                            dialogue_index += 1
+                        else:
+                            got_interaction_npc = True
+                    if got_interaction_npc == True:
+                        if dialogue_index <= len(npc1_dialogue):
+                            got_interaction_npc = True 
+                            dialogue_index += 1
+                        else:
+                            got_interaction_npc = False
+                    
+                    if got_item_key == False:
+                        got_item_key = True
+
+                    if got_item_key == True and dialogue_index == len(npc1_dialogue) + 2:
+                        got_item_key = False
+
+                    if event.key == pygame.K_q:
+                        inventory_open = True
+            if event.key == pygame.K_d and inventory_open == True and choose_item <= len(inventory) + 1 and inventory != []:
                 choose_item += 1
-            if event.key == pygame.K_a and inventory_open == True and choose_item >= 1:
-                    choose_item -= 1
+            if event.key == pygame.K_a and inventory_open == True and choose_item >= 1 and inventory != []:
+                choose_item -= 1
 
             # Si se aprieta shift, acelera el movimiento
 
@@ -327,12 +409,9 @@ while run == True:
                 choose_item = 0
             if event.key == pygame.K_LSHIFT:
                 movement -=16
-            if event.key == pygame.K_SPACE:
-                got_item_key = False
 
             
     # actualiza el código al final, y constantemente
-
     pygame.display.update()
 
 pygame.quit()
